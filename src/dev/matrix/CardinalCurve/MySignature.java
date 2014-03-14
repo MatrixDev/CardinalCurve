@@ -1,47 +1,38 @@
 package dev.matrix.CardinalCurve;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.view.MotionEvent;
 import android.view.View;
-import dev.matrix.CardinalCurve.curves.CardinalCurve;
+import dev.matrix.CardinalCurve.curves.CardinalCurveWithCanvas;
 
 public class MySignature extends View {
 
-	private Bitmap mBitmap;
-	private Canvas mCanvas;
-	private Paint mPaint = new Paint();
-	private CardinalCurve mCurve = new CardinalCurve();
+	private CardinalCurveWithCanvas mCurve;
 
 	public MySignature(Context context) {
 		super(context);
-
-		mCurve.setWidth(3, 20);
-		mPaint.setColor(Color.BLUE);
 
 		setWillNotDraw(false);
 	}
 
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-		if (mBitmap != null) {
-			Bitmap bitmap = Bitmap.createScaledBitmap(mBitmap, w, h, true);
-			mBitmap.recycle();
-			mBitmap = bitmap;
+		if (mCurve != null) {
+			mCurve.resize(w, h);
 		} else {
-			mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-			mBitmap.eraseColor(Color.WHITE);
+			mCurve = new CardinalCurveWithCanvas(w, h);
+			mCurve.setWidth(3, 20);
+			mCurve.clearCanvas(Color.WHITE);
+			mCurve.getPaint().setAntiAlias(true);
+			mCurve.getPaint().setColor(Color.BLUE);
 		}
-		mCanvas = new Canvas(mBitmap);
 	}
 
 	@Override
 	protected void onDraw(Canvas canvas) {
-		canvas.drawBitmap(mBitmap, 0, 0, null);
-		mCurve.draw(canvas, mPaint);
+		mCurve.draw(canvas);
 	}
 
 	@Override
@@ -55,8 +46,8 @@ public class MySignature extends View {
 
 			case MotionEvent.ACTION_UP:
 				mCurve.addPoint(event.getX(), event.getY());
-				mCurve.draw(mCanvas, mPaint);
-				mCurve.clear();
+				mCurve.clearPoints();
+				mCurve.clearCanvas(Color.WHITE);
 				invalidate();
 				break;
 		}
